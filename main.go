@@ -4,9 +4,10 @@ package main
 import (
 	"log"
 
-	"NotedTeam/config"
-	"NotedTeam/controllers"
-	"NotedTeam/models"
+	"notedteam.backend/config"
+	"notedteam.backend/controllers"
+	"notedteam.backend/middlewares" // Impor package middleware
+	"notedteam.backend/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,8 +18,8 @@ func main() {
 	// Koneksi ke database
 	config.ConnectDatabase()
 
-	// Migrasi otomatis model User
-	err := config.DB.AutoMigrate(&models.User{})
+	// Migrasi otomatis model User dan Todo
+	err := config.DB.AutoMigrate(&models.User{}, &models.Todo{}) // Tambahkan &models.Todo{}
 	if err != nil {
 		log.Fatal("failed to migrate database")
 	}
@@ -28,12 +29,15 @@ func main() {
 	public.POST("/register", controllers.Register)
 	public.POST("/login", controllers.Login)
 
-	// Contoh rute yang akan diproteksi nanti
-	// protected := r.Group("/api")
-	// protected.Use(middlewares.AuthMiddleware()) // Ini akan ditambahkan nanti
-	// protected.GET("/profile", func(c *gin.Context) {
-	//     c.JSON(http.StatusOK, gin.H{"message": "This is a protected route"})
-	// })
+	// Rute yang diproteksi untuk API
+	protected := r.Group("/api")
+	protected.Use(middlewares.AuthMiddleware()) // Gunakan middleware otentikasi
+	{
+		protected.POST("/todos", controllers.CreateTodo)
+		protected.GET("/todos", controllers.GetTodos)
+		protected.PUT("/todos/:id", controllers.UpdateTodo)
+		protected.DELETE("/todos/:id", controllers.DeleteTodo)
+	}
 
 	// Jalankan server
 	log.Println("Starting server on :8080")

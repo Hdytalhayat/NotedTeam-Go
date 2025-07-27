@@ -4,9 +4,9 @@ package controllers
 import (
 	"net/http"
 
-	"NotedTeam/config"
-	"NotedTeam/models"
-	"NotedTeam/utils"
+	"notedteam.backend/config"
+	"notedteam.backend/models"
+	"notedteam.backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

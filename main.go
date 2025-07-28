@@ -14,34 +14,43 @@ import (
 
 func main() {
 	r := gin.Default()
-
-	// Koneksi ke database
 	config.ConnectDatabase()
 
-	// Migrasi otomatis model User dan Todo
-	err := config.DB.AutoMigrate(&models.User{}, &models.Todo{}) // Tambahkan &models.Todo{}
+	// Tambahkan model baru ke migrasi
+	err := config.DB.AutoMigrate(&models.User{}, &models.Todo{}, &models.Team{})
 	if err != nil {
 		log.Fatal("failed to migrate database")
 	}
 
-	// Rute publik untuk autentikasi
+	// Grup rute Auth (tidak berubah)
 	public := r.Group("/auth")
 	public.POST("/register", controllers.Register)
 	public.POST("/login", controllers.Login)
 
 	// Rute yang diproteksi untuk API
 	protected := r.Group("/api")
-	protected.Use(middlewares.AuthMiddleware()) // Gunakan middleware otentikasi
+	protected.Use(middlewares.AuthMiddleware())
 	{
-		protected.POST("/todos", controllers.CreateTodo)
-		protected.GET("/todos", controllers.GetTodos)
-		protected.PUT("/todos/:id", controllers.UpdateTodo)
-		protected.DELETE("/todos/:id", controllers.DeleteTodo)
+		// Rute untuk manajemen tim
+		protected.POST("/teams", controllers.CreateTeam)
+		protected.GET("/teams", controllers.GetMyTeams)
+
+		// Grup rute untuk aksi di dalam sebuah tim spesifik
+		// Semua rute di sini memerlukan user untuk menjadi anggota tim
+		teamRoutes := protected.Group("/teams/:teamId")
+		teamRoutes.Use(middlewares.TeamMemberMiddleware())
+		{
+			// Invite
+			teamRoutes.POST("/invite", controllers.InviteUserToTeam)
+
+			// CRUD untuk Todos di dalam tim
+			teamRoutes.POST("/todos", controllers.CreateTodo) // Sesuaikan nama fungsi controllernya
+			teamRoutes.GET("/todos", controllers.GetTeamTodos)
+			teamRoutes.PUT("/todos/:todoId", controllers.UpdateTodo)
+			teamRoutes.DELETE("/todos/:todoId", controllers.DeleteTodo)
+		}
 	}
 
-	// Jalankan server
 	log.Println("Starting server on :8080")
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal("failed to run server")
-	}
+	r.Run(":8080")
 }

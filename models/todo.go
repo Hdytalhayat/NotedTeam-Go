@@ -25,8 +25,15 @@ type Todo struct {
 	Description string      `json:"description"`
 	Status      StatusType  `json:"status" gorm:"type:enum('pending','working','completed');default:'pending'"`
 	Urgency     UrgencyType `json:"urgency" gorm:"type:enum('low','medium','high');default:'low'"`
-	UserID      uint        `json:"user_id"`                    // Foreign Key ke tabel User
-	User        User        `json:"-" gorm:"foreignKey:UserID"` // Relasi ke User
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
+
+	// --- PERUBAHAN ---
+	TeamID    uint `json:"team_id"`    // Foreign Key ke tabel Team
+	CreatorID uint `json:"creator_id"` // User yang membuat todo ini
+	Creator   User `json:"-" gorm:"foreignKey:CreatorID"`
+	// UserID dihapus karena kepemilikan sekarang oleh Tim.
+	// UserID      uint        `json:"user_id"`
+	// User        User        `json:"-" gorm:"foreignKey:UserID"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

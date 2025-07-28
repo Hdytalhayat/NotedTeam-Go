@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"notedteam.backend/config"
+	"notedteam.backend/models"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -41,9 +43,17 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if ok && token.Valid {
-			// Ambil user_id dari token dan teruskan ke context
 			userID := uint(claims["user_id"].(float64))
-			c.Set("user_id", userID)
+
+			var user models.User
+			if err := config.DB.First(&user, userID).Error; err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+				return
+			}
+
+			// Set user_id dan objek user ke context
+			c.Set("user_id", user.ID)
+			c.Set("user", user)
 			c.Next()
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})

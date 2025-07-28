@@ -10,4 +10,5 @@ type User struct {
 	Password  string    `json:"-" gorm:"not null"` // Tanda - agar tidak tampil di JSON
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Teams     []Team    `json:"teams,omitempty" gorm:"many2many:team_members;"`
 }

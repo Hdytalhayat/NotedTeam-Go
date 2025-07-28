@@ -63,7 +63,7 @@ func main() {
 
 	// Jalankan server
 	log.Println("Starting server on http://localhost:8080")
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run("0.0.0.0:8080"); err != nil {
 		log.Fatal("Failed to run server:", err)
 	}
 }

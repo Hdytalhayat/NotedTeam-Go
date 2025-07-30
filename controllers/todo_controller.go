@@ -16,8 +16,9 @@ import (
 
 // CreateTodoInput mendefinisikan data yang dibutuhkan untuk membuat todo baru.
 type CreateTodoInput struct {
-	Title       string `json:"title" binding:"required"`
-	Description string `json:"description"`
+	Title       string             `json:"title" binding:"required"`
+	Description string             `json:"description"`
+	Urgency     models.UrgencyType `json:"urgency"`
 }
 
 // UpdateTodoInput mendefinisikan data yang bisa diubah pada sebuah todo.
@@ -48,6 +49,11 @@ func CreateTodo(c *gin.Context) {
 	}
 
 	creatorID, _ := c.Get("user_id")
+	// --- PERUBAHAN DI SINI ---
+	urgency := input.Urgency
+	if urgency == "" { // Jika klien tidak mengirim urgensi, gunakan default 'low'
+		urgency = models.UrgencyLow
+	}
 	todo := models.Todo{
 		Title:       input.Title,
 		Description: input.Description,

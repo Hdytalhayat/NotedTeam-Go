@@ -121,3 +121,65 @@ func GetMyTeams(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": user.Teams})
 }
+
+type UpdateTeamInput struct {
+	Name string `json:"name" binding:"required"`
+}
+
+// UpdateTeam memperbarui nama sebuah tim.
+func UpdateTeam(c *gin.Context) {
+	teamID := c.Param("teamId")
+
+	var input UpdateTeamInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var team models.Team
+	if err := config.DB.First(&team, teamID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	team.Name = input.Name
+	config.DB.Save(&team)
+
+	c.JSON(http.StatusOK, gin.H{"data": team})
+}
+
+// DeleteTeam menghapus sebuah tim beserta semua datanya.
+func DeleteTeam(c *gin.Context) {
+	teamID := c.Param("teamId")
+
+	// Middleware sudah memastikan user adalah owner.
+	// Kita akan menghapus tim dan GORM akan menangani relasi (cascade delete jika diatur).
+	// Untuk amannya, kita bisa hapus todos terkait secara manual.
+	tx := config.DB.Begin()
+
+	// 1. Hapus todos di dalam tim
+	if err := tx.Where("team_id = ?", teamID).Delete(&models.Todo{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete todos in team"})
+		return
+	}
+
+	// 2. Hapus asosiasi member (GORM biasanya menangani ini via many2many)
+	// Kita bisa hapus manual untuk memastikan.
+	if err := tx.Exec("DELETE FROM team_members WHERE team_id = ?", teamID).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete team members"})
+		return
+	}
+
+	// 3. Hapus tim itu sendiri
+	if err := tx.Where("id = ?", teamID).Delete(&models.Team{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete team"})
+		return
+	}
+
+	tx.Commit()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Team deleted successfully"})
+}

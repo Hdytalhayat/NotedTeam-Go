@@ -45,11 +45,18 @@ func main() {
 		teamRoutes := api.Group("/teams/:teamId")
 		teamRoutes.Use(middlewares.TeamMemberMiddleware())
 		{
-			teamRoutes.POST("/invite", controllers.InviteUserToTeam)
-			teamRoutes.POST("/todos", controllers.CreateTodo)
+			// Rute yang hanya butuh keanggotaan
+			memberRoutes := teamRoutes.Group("")
+			memberRoutes.Use(middlewares.TeamMemberMiddleware())
+			memberRoutes.POST("/invite", controllers.InviteUserToTeam)
+			memberRoutes.POST("/todos", controllers.CreateTodo)
 			teamRoutes.GET("/todos", controllers.GetTeamTodos)
 			teamRoutes.PUT("/todos/:todoId", controllers.UpdateTodo)
 			teamRoutes.DELETE("/todos/:todoId", controllers.DeleteTodo)
+			ownerRoutes := teamRoutes.Group("")
+			ownerRoutes.Use(middlewares.TeamOwnerMiddleware()) // Gunakan middleware baru
+			ownerRoutes.PUT("", controllers.UpdateTeam)        // PUT ke /api/teams/:teamId
+			ownerRoutes.DELETE("", controllers.DeleteTeam)     // DELETE ke /api/teams/:teamId
 		}
 	}
 

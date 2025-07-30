@@ -33,7 +33,7 @@ type Todo struct {
 	// UserID dihapus karena kepemilikan sekarang oleh Tim.
 	// UserID      uint        `json:"user_id"`
 	// User        User        `json:"-" gorm:"foreignKey:UserID"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	DueDate   *time.Time `json:"due_date,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"notedteam.backend/config"
 	"notedteam.backend/models"
@@ -19,6 +20,7 @@ type CreateTodoInput struct {
 	Title       string             `json:"title" binding:"required"`
 	Description string             `json:"description"`
 	Urgency     models.UrgencyType `json:"urgency"`
+	DueDate     *time.Time         `json:"due_date"`
 }
 
 // UpdateTodoInput mendefinisikan data yang bisa diubah pada sebuah todo.
@@ -28,6 +30,7 @@ type UpdateTodoInput struct {
 	Description *string             `json:"description"`
 	Status      *models.StatusType  `json:"status"`
 	Urgency     *models.UrgencyType `json:"urgency"`
+	DueDate     *time.Time          `json:"due_date"`
 }
 
 // --- Fungsi Controller ---
@@ -59,6 +62,7 @@ func CreateTodo(c *gin.Context) {
 		Description: input.Description,
 		Status:      models.StatusPending,
 		Urgency:     models.UrgencyLow,
+		DueDate:     input.DueDate,
 		TeamID:      uint(teamId),
 		CreatorID:   creatorID.(uint),
 	}

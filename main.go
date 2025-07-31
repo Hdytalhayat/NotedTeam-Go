@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"notedteam.backend/config"
 	"notedteam.backend/controllers"
@@ -79,8 +80,19 @@ func main() {
 	}
 
 	// Jalankan server
-	log.Println("Starting server on http://localhost:8080")
-	if err := r.Run("0.0.0.0:8080"); err != nil {
-		log.Fatal("Failed to run server:", err)
+	// log.Println("Starting server on http://localhost:8080")
+	// if err := r.Run("0.0.0.0:8080"); err != nil {
+	// 	log.Fatal("Failed to run server:", err)
+	// }
+	port := os.Getenv("PORT") // Ambil port dari environment variable
+	if port == "" {
+		port = "8080" // Gunakan 8080 sebagai default jika tidak ada (untuk dev lokal)
 	}
+
+	log.Println("Starting server on port " + port)
+	// Jalankan server di port yang ditentukan
+	if err := r.Run(":" + port); err != nil {
+		log.Fatal("failed to run server")
+	}
+
 }

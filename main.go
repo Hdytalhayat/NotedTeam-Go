@@ -53,6 +53,7 @@ func main() {
 			// Rute yang hanya butuh keanggotaan
 			memberRoutes := teamRoutes.Group("")
 			memberRoutes.Use(middlewares.TeamMemberMiddleware())
+			memberRoutes.GET("", controllers.GetTeamDetails)
 			memberRoutes.POST("/invite", controllers.InviteUserToTeam)
 			memberRoutes.POST("/todos", controllers.CreateTodo)
 			teamRoutes.GET("/todos", controllers.GetTeamTodos)

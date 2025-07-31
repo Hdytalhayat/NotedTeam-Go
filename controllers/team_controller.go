@@ -220,3 +220,15 @@ func DeleteTeam(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Team deleted successfully"})
 }
+func GetTeamDetails(c *gin.Context) {
+	teamID := c.Param("teamId")
+
+	var team models.Team
+	// Gunakan Preload("Members") untuk memuat data anggota tim terkait
+	if err := config.DB.Preload("Members").First(&team, teamID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": team})
+}

@@ -6,10 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"notedteam.backend/config"
+	"notedteam.backend/models" // Pastikan models diimpor
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"notedteam.backend/config"
-	"notedteam.backend/models"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -20,7 +21,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Header harus dalam format "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header format must be Bearer {token}"})
@@ -29,7 +29,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Pastikan metode signing adalah HMAC
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, http.ErrAbortHandler
 			}
@@ -45,16 +44,18 @@ func AuthMiddleware() gin.HandlerFunc {
 		if ok && token.Valid {
 			userID := uint(claims["user_id"].(float64))
 
+			// --- PERBAIKAN PENTING DI SINI ---
+			// Selalu ambil data user lengkap dan simpan di context
 			var user models.User
 			if err := config.DB.First(&user, userID).Error; err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User associated with token not found"})
 				return
 			}
 
-			// Set user_id dan objek user ke context
-			c.Set("user_id", user.ID)
-			c.Set("user", user)
+			c.Set("user_id", user.ID) // Tetap set user_id untuk kemudahan
+			c.Set("user", user)       // Set objek user lengkap
 			c.Next()
+			// ---------------------------------
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 		}

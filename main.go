@@ -18,7 +18,7 @@ func main() {
 	config.ConnectDatabase()
 
 	log.Println("Running database migrations...")
-	err := config.DB.AutoMigrate(&models.User{}, &models.Team{}, &models.Todo{})
+	err := config.DB.AutoMigrate(&models.User{}, &models.Team{}, &models.Todo{}, &models.Invitation{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -43,6 +43,7 @@ func main() {
 		api.GET("/teams", controllers.GetMyTeams)
 
 		teamRoutes := api.Group("/teams/:teamId")
+
 		teamRoutes.Use(middlewares.TeamMemberMiddleware())
 		{
 			// Rute yang hanya butuh keanggotaan
@@ -57,7 +58,11 @@ func main() {
 			ownerRoutes.Use(middlewares.TeamOwnerMiddleware()) // Gunakan middleware baru
 			ownerRoutes.PUT("", controllers.UpdateTeam)        // PUT ke /api/teams/:teamId
 			ownerRoutes.DELETE("", controllers.DeleteTeam)     // DELETE ke /api/teams/:teamId
+			// Rute baru untuk manajemen undangan
+			api.GET("/invitations", controllers.GetMyInvitations)
+			api.POST("/invitations/:invitationId/respond", controllers.RespondToInvitation)
 		}
+
 	}
 
 	// 3. Grup TERPISAH khusus untuk WebSocket dengan middleware-nya sendiri

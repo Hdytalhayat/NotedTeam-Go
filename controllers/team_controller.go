@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -87,6 +88,14 @@ func InviteUserToTeam(c *gin.Context) {
 	}
 
 	teamId := c.Param("teamId")
+
+	// Konversi teamId string ke uint
+	teamIdUint, err := strconv.ParseUint(teamId, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
 	var userToInvite models.User
 	var team models.Team
 
@@ -96,20 +105,48 @@ func InviteUserToTeam(c *gin.Context) {
 		return
 	}
 
-	// Cari tim
-	if err := config.DB.First(&team, teamId).Error; err != nil {
+	// Cari tim berdasarkan ID
+	if err := config.DB.First(&team, teamIdUint).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
 		return
 	}
 
-	// Tambahkan user ke dalam tim
-	if err := config.DB.Model(&team).Association("Members").Append(&userToInvite); err != nil {
-		// Error ini bisa terjadi jika user sudah menjadi member
-		c.JSON(http.StatusConflict, gin.H{"error": "User is already a member or failed to add"})
+	// Periksa apakah user sudah menjadi anggota
+	var memberCount int64
+	if err := config.DB.
+		Table("team_members").
+		Where("user_id = ? AND team_id = ?", userToInvite.ID, teamIdUint).
+		Count(&memberCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check team membership"})
+		return
+	}
+	if memberCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "User is already a member of this team"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User successfully invited to the team"})
+	// Periksa apakah sudah ada undangan yang tertunda
+	var existingInvitation models.Invitation
+	if err := config.DB.
+		Where("user_id = ? AND team_id = ? AND status = ?", userToInvite.ID, teamIdUint, models.InvitationPending).
+		First(&existingInvitation).Error; err == nil {
+		c.JSON(http.StatusOK, gin.H{"message": "An invitation has already been sent to this user."})
+		return
+	}
+
+	// Buat undangan baru
+	invitation := models.Invitation{
+		UserID: userToInvite.ID,
+		TeamID: uint(teamIdUint),
+		Status: models.InvitationPending,
+	}
+
+	if err := config.DB.Create(&invitation).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create invitation"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User successfully invited to the team"})
 }
 
 func GetMyTeams(c *gin.Context) {

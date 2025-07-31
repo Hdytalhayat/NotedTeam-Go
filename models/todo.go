@@ -29,10 +29,10 @@ type Todo struct {
 	// --- PERUBAHAN ---
 	TeamID    uint `json:"team_id"`    // Foreign Key ke tabel Team
 	CreatorID uint `json:"creator_id"` // User yang membuat todo ini
-	Creator   User `json:"-" gorm:"foreignKey:CreatorID"`
-	// UserID dihapus karena kepemilikan sekarang oleh Tim.
-	// UserID      uint        `json:"user_id"`
-	// User        User        `json:"-" gorm:"foreignKey:UserID"`
+	// Creator   User       `json:"-" gorm:"foreignKey:CreatorID"`
+	EditorID  uint       `json:"editor_id"`
+	Creator   User       `json:"creator,omitempty" gorm:"foreignKey:CreatorID"`
+	Editor    User       `json:"editor,omitempty" gorm:"foreignKey:EditorID"`
 	DueDate   *time.Time `json:"due_date,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`

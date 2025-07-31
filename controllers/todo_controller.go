@@ -39,6 +39,7 @@ type UpdateTodoInput struct {
 // Rute: POST /api/teams/:teamId/todos
 func CreateTodo(c *gin.Context) {
 	teamIdStr := c.Param("teamId")
+
 	teamId, err := strconv.ParseUint(teamIdStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Team ID format"})
@@ -65,7 +66,9 @@ func CreateTodo(c *gin.Context) {
 		DueDate:     input.DueDate,
 		TeamID:      uint(teamId),
 		CreatorID:   creatorID.(uint),
+		EditorID:    creatorID.(uint),
 	}
+	config.DB.Preload("Creator").Preload("Editor").First(&todo, todo.ID)
 
 	if err := config.DB.Create(&todo).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create todo"})
@@ -87,10 +90,10 @@ func CreateTodo(c *gin.Context) {
 // GetTeamTodos mengambil semua todo dari sebuah tim.
 // Rute: GET /api/teams/:teamId/todos
 func GetTeamTodos(c *gin.Context) {
-	teamId := c.Param("teamId")
+	teamID := c.Param("teamId")
 	var todos []models.Todo
 
-	if err := config.DB.Where("team_id = ?", teamId).Order("created_at desc").Find(&todos).Error; err != nil {
+	if err := config.DB.Preload("Creator").Preload("Editor").Where("team_id = ?", teamID).Order("created_at desc").Find(&todos).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch todos"})
 		return
 	}
@@ -103,7 +106,7 @@ func GetTeamTodos(c *gin.Context) {
 func UpdateTodo(c *gin.Context) {
 	teamId := c.Param("teamId")
 	todoId := c.Param("todoId")
-
+	editorID, _ := c.Get("user_id")
 	var input UpdateTodoInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -115,11 +118,12 @@ func UpdateTodo(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Todo not found in this team"})
 		return
 	}
-
+	todo.EditorID = editorID.(uint)
 	if err := config.DB.Model(&todo).Updates(&input).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update todo"})
 		return
 	}
+	config.DB.Preload("Creator").Preload("Editor").First(&todo, todo.ID)
 
 	// --- Integrasi WebSocket ---
 	msg := ws.Message{Event: "todo_updated", Data: todo}

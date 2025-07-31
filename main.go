@@ -33,6 +33,10 @@ func main() {
 	{
 		public.POST("/register", controllers.Register)
 		public.POST("/login", controllers.Login)
+		public.GET("/verify", controllers.VerifyEmail)
+		public.POST("/forgot-password", controllers.ForgotPassword)
+		public.GET("/reset-password-page", controllers.ShowResetPasswordPage)
+		public.POST("/reset-password", controllers.ResetPassword)
 	}
 
 	// 2. Grup untuk API standar yang menggunakan otentikasi via Header 'Authorization'

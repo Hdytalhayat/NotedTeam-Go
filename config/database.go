@@ -16,7 +16,9 @@ var DB *gorm.DB
 func ConnectDatabase() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		// Jangan hentikan aplikasi. Cukup catat bahwa .env tidak dimuat.
+		// Ini adalah perilaku yang diharapkan di lingkungan produksi seperti Railway.
+		log.Println("Could not load .env file. Using environment variables from a different source (expected in production).")
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",

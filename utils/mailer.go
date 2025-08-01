@@ -21,7 +21,7 @@ func SendVerificationEmail(toEmail, token string) error {
 	mailer.SetHeader("Subject", "Verify Your NotedTeam Account")
 
 	// Buat link verifikasi
-	verificationLink := "http://192.168.1.2:8080/auth/verify?token=" + token
+	verificationLink := "http://noble-energy-production-d0ae.up.railway.app:8080/auth/verify?token=" + token
 
 	// Body email (bisa menggunakan HTML)
 	body := "Hi there,<br><br>Thank you for registering. Please click the link below to verify your email address:<br>"

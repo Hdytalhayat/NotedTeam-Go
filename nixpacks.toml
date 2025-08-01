@@ -1,0 +1,19 @@
+# nixpacks.toml
+
+# Memberi tahu Nixpacks untuk menggunakan provider Go
+providers = ["go"]
+
+# Fasa instalasi
+[phases.install]
+# Menjalankan 'go get' atau 'go mod download' untuk menginstal dependensi
+cmds = ["go mod download"]
+
+# Fasa build (opsional, tapi bagus untuk kompilasi)
+# Ini akan mengkompilasi aplikasi Anda menjadi satu file binary bernama 'server'
+[phases.build]
+cmds = ["go build -o server ."]
+
+# Fasa start (perintah untuk memulai aplikasi)
+# Sekarang kita menjalankan binary yang sudah dikompilasi, bukan 'go run'
+[start]
+cmd = "./server"

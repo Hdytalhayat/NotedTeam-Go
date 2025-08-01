@@ -107,7 +107,7 @@ All `/api` routes require the `Authorization: Bearer <token>` header.
 3. **Configure Environment Variables**:
     - Copy `.env.example` to `.env`:
       ```bash
-      cp .env.example .env
+      cp env.example .env
       ```
     - Fill in the required values:
         - `DB_USER`, `DB_PASSWORD`, `DB_NAME`, etc.

@@ -21,7 +21,7 @@ func SendVerificationEmail(toEmail, token string) error {
 	mailer.SetHeader("Subject", "Verify Your NotedTeam Account")
 
 	// Buat link verifikasi
-	verificationLink := "http://noble-energy-production-d0ae.up.railway.app/auth/verify?token=" + token
+	verificationLink := "https://noble-energy-production-d0ae.up.railway.app/auth/verify?token=" + token
 
 	// Body email (bisa menggunakan HTML)
 	body := "Hi there,<br><br>Thank you for registering. Please click the link below to verify your email address:<br>"
@@ -53,7 +53,7 @@ func SendPasswordResetEmail(toEmail, token string) error {
 	mailer.SetHeader("Subject", "Reset Your NotedTeam Password")
 
 	// Buat link ke halaman web reset
-	resetLink := "http://noble-energy-production-d0ae.up.railway.app/auth/reset-password-page?token=" + token
+	resetLink := "https://noble-energy-production-d0ae.up.railway.app/auth/reset-password-page?token=" + token
 
 	body := "Hi there,<br><br>We received a request to reset your password. Please click the link below to set a new password:<br>"
 	body += "<a href=\"" + resetLink + "\">Reset My Password</a><br><br>"

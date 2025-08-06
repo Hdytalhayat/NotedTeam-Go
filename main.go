@@ -10,19 +10,26 @@ import (
 	"notedteam.backend/models"
 	"notedteam.backend/ws"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
-
 	config.ConnectDatabase()
-
-	log.Println("Running database migrations...")
 	err := config.DB.AutoMigrate(&models.User{}, &models.Team{}, &models.Todo{}, &models.Invitation{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+	// Konfigurasi CORS
+	config := cors.DefaultConfig()
+	// Izinkan semua origin. Untuk produksi nyata, Anda bisa membatasinya:
+	// config.AllowOrigins = []string{"https://url-flutter-web-anda.com"}
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
+	r.Use(cors.New(config))
+	log.Println("Running database migrations...")
 
 	go ws.AppHub.Run()
 	log.Println("WebSocket Hub started.")

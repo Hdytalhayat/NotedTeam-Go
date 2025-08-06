@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/gin-gonic/logo/master/color.png" alt="Go & Gin" width="100"/>
 
-This is the backend server repository for **NotedTeam**, a high-performance RESTful API built with **Go (Golang)** and the **Gin** framework. It handles all business logic, database management, authentication, and real-time communication for the https://github.com/Hdytalhayat/NotedTeam-Flutter).
+This is the backend server repository for **NotedTeam**, a high-performance RESTful API built with **Go (Golang)** and the **Gin** framework. It handles all business logic, database management, authentication, and real-time communication for the https://github.com/Hdytalhayat/NotedTeam-Flutter.
 
 ---
 
